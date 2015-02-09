@@ -1,0 +1,57 @@
+body,
+html {
+	height: 100%;
+	width: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-family: "Lato", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	font-weight: 700;
+}
+
+body {
+	font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+	font-size: 16px;
+	color: #f0f0f0;
+	margin: 0;
+}
+
+.term-background {
+	background-color: rgb(0, 0, 0);
+}
+
+#term-title {
+	height: 17px;
+	border: #000 solid 2px;
+	font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+	font-size: 16px;
+	color: #99CCFF;
+	background: #000;
+}
+
+#container-terminal {
+	margin-left: 8px;
+}
+
+#term-startline {
+	height: 17px;
+	border: #000 solid 2px;
+	font-family: "DejaVu Sans Mono", "Liberation Mono", monospace;
+	font-size: 16px;
+	color: #f0f0f0;
+	background: #000;
+
+	margin-left: 8px;
+	position: fixed;
+	bottom: 0;
+}
+
+#current-time {
+	color: #34e2e2;
+}

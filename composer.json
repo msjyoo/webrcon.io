@@ -1,0 +1,26 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "xpaw/php-source-query-class",
+				"version": "dev-master",
+				"source": {
+					"url": "https://github.com/xPaw/PHP-Source-Query-Class",
+					"type": "git",
+					"reference": "dev-master"
+				},
+				"autoload": {
+					"files": [
+						"SourceQuery/SourceQuery.class.php"
+					]
+				}
+			}
+
+		}
+	],
+	"require": {
+        "slim/slim": "2.*",
+	    "xPaw/PHP-Source-Query-Class": "dev-master#c2ffe00abd35007c815fbc8e9886fc64eeae6513"
+    }
+}
