@@ -5,7 +5,7 @@ var TEXTCOLOUR_RESET = "\x1b[39;49m";
 $(document).ready(function () {
 	var initialInfo = [
 		"--------------------------------------------------",
-		"| WebRCON.io Version v1.0.0                      |",
+		"| WebRCON Version v1.0.0                         |",
 		"| Developed and Maintained by @sekjun9878        |",
 		"| For any bugs please contact michael@yoo.id.au  |",
 		"--------------------------------------------------",
@@ -14,9 +14,33 @@ $(document).ready(function () {
 
 		"--------------------------------------------------",
 		"| Now you will need to enter your server's       |",
-		"| details. Please note that all connection to    |",
+		"| details.                                       |",
+		"|                                                |",
+		"| Please note that all connection to             |",
 		"| our website is secured using HTTPS and that    |",
-		"| we do not keep logs of any communication.      |",
+		"| while your connection is relayed through our   |",
+		"| API servers due to javascript limitation,      |",
+		"| we do not store your password in any way.      |",
+		"|                                                |",
+		"| We do however store your server IP (not port)  |",
+		"| for rate limiting so that our service doesn't  |",
+		"| get used as a brute force reflector.           |",
+		"|                                                |",
+		"| You may make up to 2 requests per 3 seconds    |",
+		"| per client, or 6 requests in 3 seconds to a    |",
+		"| specific host. (Any client IPs combined).      |",
+		"--------------------------------------------------",
+
+		"",
+
+		"--------------------------------------------------",
+		"| While this website runs off ad revenue for     |",
+		"| the necessary server costs, donations are very |",
+		"| welcome. Any amount is accepted.               |",
+		"|                                                |",
+		"| Bitcoin: 1JWQ2PMLR491S477vC4hRuQNV9PrbH3kE     |",
+		"|                                                |",
+		"| That is all. Enjoy!                            |",
 		"--------------------------------------------------",
 
 		""
@@ -30,7 +54,7 @@ $(document).ready(function () {
 
 	var term = new Terminal({
 		cols: 145,
-		rows: 40,
+		rows: calculateRows(),
 		screenKeys: true
 	});
 
@@ -130,7 +154,7 @@ $(document).ready(function () {
 					term.log("Server password has been set to: ********");
 					term.log("");
 
-					termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Authenticating " + address + ":" + port);
+					termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Authenticating " + address + ":" + port);
 					commandInputLine.text("Authenticating...");
 					term.log("Authenticating...");
 
@@ -152,7 +176,7 @@ $(document).ready(function () {
 								status = 5;
 								term.log(TEXTCOLOUR_GREEN + "Connected!" + TEXTCOLOUR_RESET);
 								//termInputPrefix.css("color", "#8ae234");//Cursor colour done in timer tick interval
-								termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Connected " + address + ":" + port);
+								termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Connected " + address + ":" + port);
 								commandInputLine.text("");
 							}
 							else
@@ -166,7 +190,7 @@ $(document).ready(function () {
 								term.log("");
 
 								//Reset everything to before password input
-								termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+								termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 								termInputPrefix.text(" > ");
 								commandInputLine.text("");
 								token = "";
@@ -184,7 +208,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -197,7 +221,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -210,7 +234,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -224,7 +248,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -301,7 +325,7 @@ $(document).ready(function () {
 	function initialiseTerm()
 	{
 		status = 1;//Should've been done in setInterval but just in case
-		termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+		termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
 
 		term.write("\r\n");
 
@@ -397,4 +421,14 @@ function validateIPAddress(ipaddress)
 function isNormalInteger(str) {
 	var n = ~~Number(str);
 	return String(n) === str && n >= 0;
+}
+
+function calculateRows()
+{
+	//Quadratics Function, r^2 = 1 on 3 samples
+	var a = 0.0013312;
+	var b = -2.4341353;
+	var c = 1123.19661;
+
+	return Math.ceil(a*(window.innerHeight*window.innerHeight)+b*window.innerHeight+c);
 }
