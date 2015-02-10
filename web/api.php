@@ -1,5 +1,10 @@
 <?php
+
+var_dump($_SERVER);
+exit;
 require_once(__DIR__ . "/../vendor/autoload.php");
+
+use Slim\Middleware;
 
 //Fix for https://github.com/codeguy/Slim/pull/993 until new version is released
 $obj = new Slim\Http\Response();
@@ -11,7 +16,48 @@ $array[429] = '429 Too Many Requests';
 $refProperty->setValue(null, $array);
 unset($obj, $refObject, $refProperty, $array);
 
-use Slim\Middleware;
+$CLOUDFLARE_IP_ADDRESS_RANGE_IPV4 = [
+	"199.27.128.0/21",
+	"173.245.48.0/20",
+	"103.21.244.0/22",
+	"103.22.200.0/22",
+	"103.31.4.0/22",
+	"141.101.64.0/18",
+	"108.162.192.0/18",
+	"190.93.240.0/20",
+	"188.114.96.0/20",
+	"197.234.240.0/22",
+	"198.41.128.0/17",
+	"162.158.0.0/15",
+	"104.16.0.0/12"
+];
+
+function cidr_match($ip, $cidr)
+{
+	list($subnet, $mask) = explode('/', $cidr);
+
+	if((ip2long($ip) & ~((1 << (32 - $mask)) - 1) ) == ip2long($subnet))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+function isTrustedSource($ip)
+{
+	global $CLOUDFLARE_IP_ADDRESS_RANGE_IPV4;
+
+	foreach($CLOUDFLARE_IP_ADDRESS_RANGE_IPV4 as $cidr)
+	{
+		if(cidr_match($ip, $cidr))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 /** @property Redis $redis */
 class Slim extends Slim\Slim {}
@@ -174,6 +220,15 @@ function rateLimit()
 	}
 }
 
+if(isTrustedSource($_SERVER['REMOTE_ADDR']))//If source is not trusted then
+{
+
+}
+else
+{
+	unset($_SERVER['HTTP_X_FORWARDED_FOR']);//Don't allow IP address spoofing
+}
+
 $app = new Slim(array(
 	"mode" => "production",
 	"debug" => false
@@ -181,7 +236,7 @@ $app = new Slim(array(
 
 if(!isset($_ENV["SLIM_APP_MODE"]) or $_ENV["SLIM_APP_MODE"] !== "production")
 {
-		if(isset($_ENV["SLIM_APP_MODE"]))
+	if(isset($_ENV["SLIM_APP_MODE"]))
 	{
 		$app->config("mode", strtolower($_ENV["SLIM_APP_MODE"]));
 	}
@@ -203,6 +258,9 @@ $app->add(new HTTPMethodHEADStripBodyMiddleware);
 /** @property Redis $redis */
 $app->redis = new Redis;
 $app->redis->connect($_ENV["CACHE1_HOST"], $_ENV["CACHE1_PORT"], 2);
+
+var_dump($app->request()->getIp());
+$app->stop();
 
 $app->group("/:serverHex", function () use ($app) {
 	$app->post('/rcon', "requireTokenAuth", "rateLimit", function ($serverHex) use ($app) {
