@@ -1,6 +1,8 @@
 <?php
 require_once(__DIR__ . "/../vendor/autoload.php");
 
+use Slim\Middleware;
+
 //Fix for https://github.com/codeguy/Slim/pull/993 until new version is released
 $obj = new Slim\Http\Response();
 $refObject = new ReflectionObject($obj);
@@ -11,7 +13,48 @@ $array[429] = '429 Too Many Requests';
 $refProperty->setValue(null, $array);
 unset($obj, $refObject, $refProperty, $array);
 
-use Slim\Middleware;
+$CLOUDFLARE_IP_ADDRESS_RANGE_IPV4 = [
+	"199.27.128.0/21",
+	"173.245.48.0/20",
+	"103.21.244.0/22",
+	"103.22.200.0/22",
+	"103.31.4.0/22",
+	"141.101.64.0/18",
+	"108.162.192.0/18",
+	"190.93.240.0/20",
+	"188.114.96.0/20",
+	"197.234.240.0/22",
+	"198.41.128.0/17",
+	"162.158.0.0/15",
+	"104.16.0.0/12"
+];
+
+function cidr_match($ip, $cidr)
+{
+	list($subnet, $mask) = explode('/', $cidr);
+
+	if((ip2long($ip) & ~((1 << (32 - $mask)) - 1) ) == ip2long($subnet))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+function isTrustedSource($ip)
+{
+	global $CLOUDFLARE_IP_ADDRESS_RANGE_IPV4;
+
+	foreach($CLOUDFLARE_IP_ADDRESS_RANGE_IPV4 as $cidr)
+	{
+		if(cidr_match($ip, $cidr))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 
 /** @property Redis $redis */
 class Slim extends Slim\Slim {}
@@ -174,25 +217,49 @@ function rateLimit()
 	}
 }
 
-$app = new Slim(array(
-	"mode" => "production",
-	"debug" => false
-));
+$mode = "production";
 
 if(!isset($_ENV["SLIM_APP_MODE"]) or $_ENV["SLIM_APP_MODE"] !== "production")
 {
-		if(isset($_ENV["SLIM_APP_MODE"]))
+	if(isset($_ENV["SLIM_APP_MODE"]))
 	{
-		$app->config("mode", strtolower($_ENV["SLIM_APP_MODE"]));
+		$mode = strtolower($_ENV["SLIM_APP_MODE"]);
 	}
 	else
 	{
-		$app->config("mode", "development");
+		$mode = "development";
 	}
 }
 
+// XFF because PagodaBox overrides it
+if($mode === "production")
+{
+	if(!isset($_SERVER['HTTP_X_FORWARDED_FOR']))
+	{
+		throw new LogicException("PagodaBox Will Always Inject X-Forwarded-For");
+	}
+
+	if(isTrustedSource($_SERVER['HTTP_X_FORWARDED_FOR']))
+	{
+		// Not a typo, Slim prefers X_ before HTTP_X_
+		$_SERVER['X_FORWARDED_FOR'] = $_SERVER['HTTP_CF_CONNECTING_IP'];
+	}
+	else
+	{
+		//Still overwrite because X_ can be spoofed.
+		$_SERVER['X_FORWARDED_FOR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	}
+}
+
+$app = new Slim(array(
+	"mode" => $mode,
+	"debug" => false
+));
+
 if($app->config("mode") === "development")
 {
+	$app->config("debug", true);
+
 	$_ENV["CACHE1_HOST"] = "192.168.137.5";
 	$_ENV["CACHE1_PORT"] = 6379;
 }
@@ -297,8 +364,8 @@ $app->group("/:serverHex", function () use ($app) {
 
 			$sourceQuery->Disconnect();
 		}
-		//catch(\xPaw\SourceQuery\Exception\InvalidArgumentException $e) // Don't catch this so it errors out
-		//catch(\xPaw\SourceQuery\Exception\SocketException $e) // Don't catch this so it errors out
+			//catch(\xPaw\SourceQuery\Exception\InvalidArgumentException $e) // Don't catch this so it errors out
+			//catch(\xPaw\SourceQuery\Exception\SocketException $e) // Don't catch this so it errors out
 		catch(\xPaw\SourceQuery\Exception\TimeoutException $e)
 		{
 			switch($e->getCode())
@@ -344,7 +411,7 @@ $app->group("/:serverHex", function () use ($app) {
 								"This could be due to the an IP ban against the WebRCON servers."
 						]
 					])); // HTTP/1.1 403 Forbidden
-				break;
+					break;
 				default:
 					throw new LogicException("Unknown AuthenticationException Exception Code");
 			}
@@ -439,8 +506,8 @@ $app->group("/:serverHex", function () use ($app) {
 
 			$sourceQuery->Disconnect();
 		}
-		//catch(\xPaw\SourceQuery\Exception\InvalidArgumentException $e) // Don't catch this so it errors out
-		//catch(\xPaw\SourceQuery\Exception\SocketException $e) // Don't catch this so it errors out
+			//catch(\xPaw\SourceQuery\Exception\InvalidArgumentException $e) // Don't catch this so it errors out
+			//catch(\xPaw\SourceQuery\Exception\SocketException $e) // Don't catch this so it errors out
 		catch(\xPaw\SourceQuery\Exception\TimeoutException $e)
 		{
 			switch($e->getCode())
@@ -496,6 +563,10 @@ $app->group("/:serverHex", function () use ($app) {
 			"authenticated" => true
 		]);
 	});
+});
+
+$app->get("/test/getip", function () use ($app) {
+	echo $app->request()->getIp();
 });
 
 $app->run();
