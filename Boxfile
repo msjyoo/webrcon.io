@@ -21,9 +21,6 @@ web1:
     httpd_server_admin: "michael@yoo.id.au"
     httpd_index_list:
         - index.html
-    httpd_modules:
-        - rewrite
-        - headers
 
     php_error_log: true
     apache_access_log: true
