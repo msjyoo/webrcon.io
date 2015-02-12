@@ -47,9 +47,11 @@ body {
 	color: #f0f0f0;
 	background: #000;
 
-	margin-left: 8px;
+	margin-left: 6px;
+	margin-right: 6px;
 	position: fixed;
 	bottom: 0;
+	width: 100%;
 }
 
 #current-time {

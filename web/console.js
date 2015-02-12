@@ -53,8 +53,8 @@ $(document).ready(function () {
 	var alternating = 0;
 
 	var term = new Terminal({
-		cols: 145,
-		rows: calculateRows(),
+		cols: 100,
+		rows: calculateRows(window.innerHeight),
 		screenKeys: true
 	});
 
@@ -431,12 +431,22 @@ function isNormalInteger(str) {
 	return String(n) === str && n >= 0;
 }
 
-function calculateRows()
+function calculateRows(size)
 {
-	//Quadratics Function, r^2 = 1 on 3 samples
-	var a = 0.0013312;
-	var b = -2.4341353;
-	var c = 1123.19661;
+	var preSizes = {
+		768: 39,
+		1099: 56,
+		1105: 59,
+		640: 32
+	};
 
-	return Math.ceil(a*(window.innerHeight*window.innerHeight)+b*window.innerHeight+c);
+	if(size in preSizes)
+	{
+		return preSizes[size];
+	}
+
+	var a = 0.05531087;
+	var b = -3.4554702;
+
+	return Math.round(a*size+ b) - 1;
 }
