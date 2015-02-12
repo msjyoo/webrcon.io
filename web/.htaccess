@@ -7,17 +7,13 @@ Header always set Strict-Transport-Security "max-age=10886400; includeSubDomains
 
 # Rewrite Engine On
 RewriteEngine On
+RewriteBase /
 
-# If both HTTP and www
+# If not HTTPS
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
-
-# If naked domain but HTTP
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
+RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
 
 # If HTTPS but www
 RewriteCond %{HTTP:X-Forwarded-Proto} https
-RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
+RewriteCond %{HTTP_HOST} ^www.webrcon.io$ [NC]
+RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
