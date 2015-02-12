@@ -104,6 +104,8 @@ $(document).ready(function () {
 				case 0: // Uninitialised
 					break;
 				case 1: // Prompt for address
+					ga('send', 'event', 'terminal', 'input', 'server.address');
+
 					if(!validateIPAddress(preLineText))
 					{
 						term.log(TEXTCOLOUR_RED + "You have entered an invalid IP address!" + TEXTCOLOUR_RESET);
@@ -121,6 +123,8 @@ $(document).ready(function () {
 					promptServerDetails(1);
 					break;
 				case 2: // Prompt for port
+					ga('send', 'event', 'terminal', 'input', 'server.port');
+
 					// Check if variable is integer
 					// http://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript#comment20448200_14636652
 					if(!isNormalInteger(preLineText))
@@ -149,6 +153,8 @@ $(document).ready(function () {
 					promptServerDetails(2);
 					break;
 				case 3: // Prompt for password
+					ga('send', 'event', 'terminal', 'input', 'server.token');
+
 					//token = preLineText; token is already set below - this is done to mask the password
 					termInputPrefix.text(" > ");
 					term.log("Server password has been set to: ********");
@@ -264,6 +270,8 @@ $(document).ready(function () {
 					commandInputLine.text("Authenticating...");//On enter, Reset text to
 					break;//Ignore input
 				case 5: // Active Connection
+					ga('send', 'event', 'terminal', 'input', 'command');
+
 					term.log(preLineText/* + data*/);//Exclude Newline (data would be newline)
 
 					//Send RCON Command
