@@ -567,8 +567,6 @@ $app->group("/:serverHex", function () use ($app) {
 
 $app->get("/test/getip", function () use ($app) {
 	echo $app->request()->getIp();
-
-	var_dump($_SERVER);
 });
 
 $app->run();
