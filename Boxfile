@@ -22,6 +22,10 @@ web1:
     httpd_index_list:
         - index.html
 
+    php_error_log: true
+    apache_access_log: true
+    apache_error_log: true
+
 #web2:
 #    name: api
 #    type: php
