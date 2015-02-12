@@ -1,0 +1,27 @@
+# .htaccess
+
+# Use server-side cipher order
+SSLHonorCipherOrder on
+
+# Disable Bad / Cracked Ciphers
+SSLCipherSuite ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA:ECDHE-RSA-AES128-SHA:DHE-RSA-AES256-SHA256:DHE-RSA-AES128-SHA256:DHE-RSA-AES256-SHA:DHE-RSA-AES128-SHA:ECDHE-RSA-DES-CBC3-SHA:EDH-RSA-DES-CBC3-SHA:AES256-GCM-SHA384:AES128-GCM-SHA256:AES256-SHA256:AES128-SHA256:AES256-SHA:AES128-SHA:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!MD5:!PSK:!RC4
+
+# HSTS Strict Transport Security - Cache age 18 weeks
+Header always set Strict-Transport-Security "max-age=10886400; includeSubDomains; preload"
+
+# Rewrite Engine On
+RewriteEngine On
+
+# If both HTTP and www
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
+
+# If naked domain but HTTP
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
+
+# If HTTPS but www
+RewriteCond %{HTTP:X-Forwarded-Proto} https
+RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
