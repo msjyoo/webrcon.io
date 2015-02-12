@@ -15,13 +15,13 @@ RewriteEngine On
 # If both HTTP and www
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
 RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
 
 # If naked domain but HTTP
 RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
 
 # If HTTPS but www
 RewriteCond %{HTTP:X-Forwarded-Proto} https
 RewriteCond %{HTTP_HOST} ^(?:www\.)?(.*)$ [NC]
-RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=301]
+RewriteRule (.*) https://%1%{REQUEST_URI} [L,R=307]
