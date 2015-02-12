@@ -15,16 +15,47 @@
 			ga('create', 'UA-40841043-8', 'auto');
 			ga('send', 'pageview');
 		</script>
-
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-		<script src="https://cdn.rawgit.com/chjj/term.js/0b10f6c55d5113d50d0ff94b6c38a46375a5f9a5/src/term.js"></script>
-
-		<script src="/console.js"></script>
 	</head>
-	<body class="term-background">
+	<body class="term-background preserve-3d">
 		<div id="container-terminal">
 			<div id="term-title"></div>
 		</div>
 		<div id="term-startline"><span id="current-time">00:00:00</span><span id="term-input-prefix-info"> &gt; </span><span id="term-input">Initialising...</span></div>
+
+		<script>
+			var initialWindowHeight = window.innerHeight;
+
+			/* webrcon.io right-skyscraper wide */
+			var ad_right_skyscraper_wide = "" +
+				"<div class=\"ad-right-skyscraper\"> \
+					<script async src=\"//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js\"><\/script> \
+					<ins class=\"adsbygoogle\" \
+	                     style=\"display:inline-block;width:160px;height:600px\" \
+	                     data-ad-client=\"ca-pub-7397941446940035\" \
+	                   data-ad-slot=\"5706794702\"></ins> \
+					<script> \
+						(adsbygoogle = window.adsbygoogle || []).push({}); \
+					<\/script> \
+				</div>";
+
+			if(window.innerHeight >= 600)
+			{
+				document.write(ad_right_skyscraper_wide);
+			}
+
+			window.addEventListener('resize', function(event){
+				if(initialWindowHeight < 600 && window.innerHeight >= 600)
+				{
+					initialWindowHeight = 600; // Prevent any further loading of ad code
+					$("body").append(ad_right_skyscraper_wide);//Ignore IDE warning
+				}
+			});
+		</script>
+
+		<!-- Load Scripts -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+		<script src="https://cdn.rawgit.com/chjj/term.js/0b10f6c55d5113d50d0ff94b6c38a46375a5f9a5/src/term.js"></script>
+
+		<script src="/console.js"></script>
 	</body>
 </html>
