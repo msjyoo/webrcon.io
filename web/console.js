@@ -347,7 +347,7 @@ $(document).ready(function () {
 				clearInterval(x);
 				promptServerDetails(0);
 			}
-		}, 5);//TODO: NOTE THIS VALUE
+		}, 5);
 	}
 
 	function promptServerDetails(message)

@@ -64,11 +64,19 @@ class Error
 	// Validation Errors
 	const AUTH_TOKEN_NOT_PROVIDED = 10;
 	const AUTH_TOKEN_TOO_LONG = 11;
-	const COMMAND_TOO_LONG = 12;
+	const BODY_TOO_LONG = 12;
 	const SERVER_DETAIL_PARSE_FAILED = 13;
-	const IP_VALIDATION_FAILED = 14;
+
+	const ADDRESS_VALIDATION_FAILED = 14;
+	const IPV6_IS_NOT_SUPPORTED = 140;
+	const DOMAIN_VALIDATION_FAILED = 141;
+	const HOST_DOES_NOT_EXIST = 142;
+	const PRIVATE_IP_RANGE = 143;
+
 	const PORT_VALIDATION_FAILED = 15;
-	const COMMAND_NOT_PROVIDED = 16;
+	const BODY_NOT_PROVIDED = 16;
+	const INVALID_BODY_FORMAT = 17;
+	const INVALID_FORMAT = 18;
 
 	// Remote Host Errors
 	const TIMEOUT_CONNECT = 20;
@@ -161,6 +169,195 @@ class RateLimit
 			$app->redis->expire("ratelimit:server:{$shortIP}", 3);
 			$app->redis->exec(); // We could use a SET with a timeout instead bu meh, until it becomes a bottleneck...
 		}
+	}
+}
+
+class Validate
+{
+	public static function domain($domain)
+	{
+		// http://stackoverflow.com/a/4694816
+		return (preg_match("/^([a-z\d](-*[a-z\d])*)(\.([a-z\d](-*[a-z\d])*))*$/i", $domain) //valid chars check
+			&& preg_match("/^.{1,253}$/", $domain) //overall length check
+			&& preg_match("/^[^\.]{1,63}(\.[^\.]{1,63})*$/", $domain)   ); //length of each label
+	}
+
+	// Unfortunately doesn't support AAAA records yet.
+	public static function host($host)
+	{
+		//These processes should all have been done beforehand but...
+		//If host is IP based, then of course it exists, it's not a domain at all!
+		if(static::ip($host) === true)
+		{
+			return true;
+		}
+
+		//If domain validation fails
+		if(static::domain($host) === false)
+		{
+			return false;
+		}
+
+		$ipv4 = gethostbyname($host);
+
+		return !($host === $ipv4);
+	}
+
+	//Both IPv4 and IPv6
+	public static function ip($ip, $include_priv = false)
+	{
+		if($include_priv == true)
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	public static function ipv4($ip, $include_priv = false)
+	{
+		if($include_priv == true)
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	public static function ipv6($ip, $include_priv = false)
+	{
+		if($include_priv == true)
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		else
+		{
+			if(filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6 | FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== false)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	/**
+	 * Output true is given on success, but can be ignored as this will fail with a halt anyway.
+	 *
+	 * @param Slim $app
+	 * @param string $address
+	 */
+	public static function addressWithOutput($app, $address)
+	{
+		if(Validate::ipv6($address) === true)
+		{
+			$app->halt(400, json_encode([
+				"error" => [
+					"code" => Error::IPV6_IS_NOT_SUPPORTED,
+					"message" => "IPv6 is currently not supported."
+				]
+			]));
+		}
+
+		if(Validate::ipv4($address, true) === true)
+		{
+			if(Validate::ipv4($address) === true)
+			{
+				return true;
+			}
+			else
+			{
+				$app->halt(400, json_encode([
+					"error" => [
+						"code" => Error::PRIVATE_IP_RANGE,
+						"message" => "The provided IP address appears to be in a private or reserved IP range."
+					]
+				]));
+			}
+		}
+
+		if(Validate::domain($address) === true)
+		{
+			if(Validate::host($address) === true)
+			{
+				$ipv4 = gethostbyname($address);
+
+				if(Validate::ipv4($ipv4) === true)
+				{
+					return true;
+				}
+				else
+				{
+					$app->halt(400, json_encode([
+						"error" => [
+							"code" => Error::PRIVATE_IP_RANGE,
+							"message" => "The provided host appears to be in a private or reserved IP range."
+						]
+					]));
+				}
+			}
+			else
+			{
+				$app->halt(400, json_encode([
+					"error" => [
+						"code" => Error::HOST_DOES_NOT_EXIST,
+						"message" => "The provided host does not exist. (No A record.)"
+					]
+				]));
+			}
+		}
+		else
+		{
+			$app->halt(400, json_encode([
+				"error" => [
+					"code" => Error::DOMAIN_VALIDATION_FAILED,
+					"message" => "The validation of the provided domain failed."
+				]
+			]));
+		}
+
+		throw new LogicException("Address Validation did not complete fully.");
 	}
 }
 
@@ -277,7 +474,18 @@ $app->group("/:serverHex", function () use ($app) {
 
 		$token = $app->container->get("token");
 
-		$command = hex2bin(trim($app->request()->getBody()));
+		//Suppress Exception
+		$command = @hex2bin(trim($app->request()->getBody()));
+
+		if($command === false)
+		{
+			$app->halt(400, json_encode([
+				"error" => [
+					"code" => Error::INVALID_BODY_FORMAT,
+					"message" => "The request body appears to be in a bad format."
+				]
+			]));
+		}
 
 		// If RCON password is longer than 4096 bytes, it's probably a buffer overflow attack using
 		// our service as a reflector.
@@ -296,8 +504,8 @@ $app->group("/:serverHex", function () use ($app) {
 		{
 			$app->halt(400, json_encode([
 				"error" => [
-					"code" => Error::COMMAND_TOO_LONG,
-					"message" => "The provided request body (the command) was too long."
+					"code" => Error::BODY_TOO_LONG,
+					"message" => "The provided request body was too long."
 				]
 			]));
 		}
@@ -306,15 +514,26 @@ $app->group("/:serverHex", function () use ($app) {
 		{
 			$app->halt(400, json_encode([
 				"error" => [
-					"code" => Error::COMMAND_NOT_PROVIDED,
-					"message" => "The request body (the command) was not provided."
+					"code" => Error::BODY_NOT_PROVIDED,
+					"message" => "The request body is required for this route, but was not provided."
 				]
 			]));
 		}
 
 		//From: 3132372e302e302e313a3139313332
-		$serverAddressAndPort = hex2bin($serverHex);
+		//Suppress Exception
+		$serverAddressAndPort = @hex2bin($serverHex);
 		//To: 127.0.0.1:19132
+
+		if($serverAddressAndPort === false)
+		{
+			$app->halt(400, json_encode([
+				"error" => [
+					"code" => Error::INVALID_FORMAT,
+					"message" => "One or more of your non-body arguments appear to be in a bad format."
+				]
+			]));
+		}
 
 		$serverAddress = explode(":", $serverAddressAndPort);
 
@@ -329,22 +548,14 @@ $app->group("/:serverHex", function () use ($app) {
 			]));
 		}
 
-		if(filter_var($serverAddress[0], FILTER_VALIDATE_IP) === false)
-		{
-			$app->halt(400, json_encode([
-				"error" => [
-					"code" => Error::IP_VALIDATION_FAILED,
-					"message" => "The validation of the provided IP address failed."
-				]
-			]));
-		}
+		Validate::addressWithOutput($app, $serverAddress[0]);
 
 		if(ctype_digit($serverAddress[1]) === false or ((integer) $serverAddress[1] < 0) or ((integer) $serverAddress[1] > 65535))
 		{
 			$app->halt(400, json_encode([
 				"error" => [
 					"code" => Error::PORT_VALIDATION_FAILED,
-					"message" => "The validation of the provided IP address failed."
+					"message" => "The validation of the provided IP port failed."
 				]
 			]));
 		}
@@ -353,7 +564,7 @@ $app->group("/:serverHex", function () use ($app) {
 		$server->address = $serverAddress[0];
 		$server->port = $serverAddress[1];
 
-		RateLimit::attemptServer($server->address);//TODO: Move failure logic out
+		RateLimit::attemptServer($server->address);
 
 		try
 		{
@@ -457,8 +668,19 @@ $app->group("/:serverHex", function () use ($app) {
 		}
 
 		//From: 3132372e302e302e313a3139313332
-		$serverAddressAndPort = hex2bin($serverHex);
+		//Suppress Exception
+		$serverAddressAndPort = @hex2bin($serverHex);
 		//To: 127.0.0.1:19132
+
+		if($serverAddressAndPort === false)
+		{
+			$app->halt(400, json_encode([
+				"error" => [
+					"code" => Error::INVALID_FORMAT,
+					"message" => "One or more of your non-body arguments appear to be in a bad format."
+				]
+			]));
+		}
 
 		$serverAddress = explode(":", $serverAddressAndPort);
 
@@ -473,22 +695,14 @@ $app->group("/:serverHex", function () use ($app) {
 			]));
 		}
 
-		if(filter_var($serverAddress[0], FILTER_VALIDATE_IP) === false)
-		{
-			$app->halt(400, json_encode([
-				"error" => [
-					"code" => Error::IP_VALIDATION_FAILED,
-					"message" => "The validation of the provided IP address failed."
-				]
-			]));
-		}
+		Validate::addressWithOutput($app, $serverAddress[0]);
 
 		if(ctype_digit($serverAddress[1]) === false or ((integer) $serverAddress[1] < 0) or ((integer) $serverAddress[1] > 65535))
 		{
 			$app->halt(400, json_encode([
 				"error" => [
 					"code" => Error::PORT_VALIDATION_FAILED,
-					"message" => "The validation of the provided IP address failed."
+					"message" => "The validation of the provided IP port failed."
 				]
 			]));
 		}
@@ -497,7 +711,7 @@ $app->group("/:serverHex", function () use ($app) {
 		$server->address = $serverAddress[0];
 		$server->port = $serverAddress[1];
 
-		RateLimit::attemptServer($server->address);//TODO: Move failure logic out
+		RateLimit::attemptServer($server->address);
 
 		try
 		{
@@ -567,6 +781,48 @@ $app->group("/:serverHex", function () use ($app) {
 
 $app->get("/test/getip", function () use ($app) {
 	echo $app->request()->getIp();
+});
+
+$app->post("/validate/address", "rateLimit", function () use ($app) {
+	//Suppress Exception
+	$address = @hex2bin(trim($app->request()->getBody()));
+
+	if($address === false)
+	{
+		$app->halt(400, json_encode([
+			"error" => [
+				"code" => Error::INVALID_BODY_FORMAT,
+				"message" => "The request body appears to be in a bad format."
+			]
+		]));
+	}
+
+	if($address === "")
+	{
+		$app->halt(400, json_encode([
+			"error" => [
+				"code" => Error::BODY_NOT_PROVIDED,
+				"message" => "The request body is required for this route, but was not provided."
+			]
+		]));
+	}
+
+	if(mb_strlen($address) > 256)
+	{
+		$app->halt(400, json_encode([
+			"error" => [
+				"code" => Error::BODY_TOO_LONG,
+				"message" => "The provided request body was too long."
+			]
+		]));
+	}
+
+	if(Validate::addressWithOutput($app, $address) === true)
+	{
+		echo json_encode([
+			"valid" => true
+		]);
+	}
 });
 
 $app->run();
