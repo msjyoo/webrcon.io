@@ -408,7 +408,7 @@ $app->group("/:serverHex", function () use ($app) {
 						"error" => [
 							"code" => Error::BANNED,
 							"message" => "The provided server actively refused connection against the specific client. ".
-								"This could be due to the an IP ban against the WebRCON servers."
+								"This could be due to the an IP ban against the WebRcon.io servers."
 						]
 					])); // HTTP/1.1 403 Forbidden
 					break;
@@ -550,7 +550,7 @@ $app->group("/:serverHex", function () use ($app) {
 						"error" => [
 							"code" => Error::BANNED,
 							"message" => "The provided server actively refused connection against the specific client. ".
-								"This could be due to the an IP ban against the WebRCON servers."
+								"This could be due to the an IP ban against the WebRcon.io servers."
 						]
 					])); // HTTP/1.1 403 Forbidden
 					break;

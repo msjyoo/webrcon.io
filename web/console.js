@@ -5,7 +5,7 @@ var TEXTCOLOUR_RESET = "\x1b[39;49m";
 $(document).ready(function () {
 	var initialInfo = [
 		"--------------------------------------------------",
-		"| WebRCON Version v1.0.0                         |",
+		"| WebRcon.io Version v1.0.0                      |",
 		"| Developed and Maintained by @sekjun9878        |",
 		"| For any bugs please contact michael@yoo.id.au  |",
 		"--------------------------------------------------",
@@ -160,7 +160,7 @@ $(document).ready(function () {
 					term.log("Server password has been set to: ********");
 					term.log("");
 
-					termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Authenticating " + address + ":" + port);
+					termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Authenticating " + address + ":" + port);
 					commandInputLine.text("Authenticating...");
 					term.log("Authenticating...");
 
@@ -182,7 +182,7 @@ $(document).ready(function () {
 								status = 5;
 								term.log(TEXTCOLOUR_GREEN + "Connected!" + TEXTCOLOUR_RESET);
 								//termInputPrefix.css("color", "#8ae234");//Cursor colour done in timer tick interval
-								termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Connected " + address + ":" + port);
+								termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Connected " + address + ":" + port);
 								commandInputLine.text("");
 							}
 							else
@@ -196,7 +196,7 @@ $(document).ready(function () {
 								term.log("");
 
 								//Reset everything to before password input
-								termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+								termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 								termInputPrefix.text(" > ");
 								commandInputLine.text("");
 								token = "";
@@ -214,7 +214,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -227,7 +227,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -240,7 +240,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -254,7 +254,7 @@ $(document).ready(function () {
 									term.log("");
 
 									//Reset everything to before password input
-									termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 									termInputPrefix.text(" > ");
 									commandInputLine.text("");
 									token = "";
@@ -333,7 +333,7 @@ $(document).ready(function () {
 	function initialiseTerm()
 	{
 		status = 1;//Should've been done in setInterval but just in case
-		termTitle.text("WebRcon by @sekjun9878, Version v1.0.0 | Not Connected");
+		termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
 
 		term.write("\r\n");
 
