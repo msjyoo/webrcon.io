@@ -283,10 +283,9 @@ class Validate
 	}
 
 	/**
-	 * Output true is given on success, but can be ignored as this will fail with a halt anyway.
-	 *
 	 * @param Slim $app
 	 * @param string $address
+	 * @returns string The clean IPv4 address
 	 */
 	public static function addressWithOutput($app, $address)
 	{
@@ -304,7 +303,7 @@ class Validate
 		{
 			if(Validate::ipv4($address) === true)
 			{
-				return true;
+				return $address;
 			}
 			else
 			{
@@ -325,7 +324,7 @@ class Validate
 
 				if(Validate::ipv4($ipv4) === true)
 				{
-					return true;
+					return $ipv4;
 				}
 				else
 				{
@@ -428,6 +427,7 @@ if(!isset($_ENV["SLIM_APP_MODE"]) or $_ENV["SLIM_APP_MODE"] !== "production")
 	}
 }
 
+//TODO: Allow multiple XFF values, use latest one. explode with ', '
 // XFF because PagodaBox overrides it
 if($mode === "production")
 {
@@ -548,7 +548,7 @@ $app->group("/:serverHex", function () use ($app) {
 			]));
 		}
 
-		Validate::addressWithOutput($app, $serverAddress[0]);
+		$serverAddress[0] = Validate::addressWithOutput($app, $serverAddress[0]);
 
 		if(ctype_digit($serverAddress[1]) === false or ((integer) $serverAddress[1] < 0) or ((integer) $serverAddress[1] > 65535))
 		{
@@ -695,7 +695,7 @@ $app->group("/:serverHex", function () use ($app) {
 			]));
 		}
 
-		Validate::addressWithOutput($app, $serverAddress[0]);
+		$serverAddress[0] = Validate::addressWithOutput($app, $serverAddress[0]);
 
 		if(ctype_digit($serverAddress[1]) === false or ((integer) $serverAddress[1] < 0) or ((integer) $serverAddress[1] > 65535))
 		{
@@ -817,7 +817,7 @@ $app->post("/validate/address", "rateLimit", function () use ($app) {
 		]));
 	}
 
-	if(Validate::addressWithOutput($app, $address) === true)
+	if(Validate::addressWithOutput($app, $address)) // If a string is returned
 	{
 		echo json_encode([
 			"valid" => true

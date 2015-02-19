@@ -106,21 +106,78 @@ $(document).ready(function () {
 				case 1: // Prompt for address
 					ga('send', 'event', 'terminal', 'input', 'server.address');
 
-					if(!validateIPAddress(preLineText))
-					{
-						term.log(TEXTCOLOUR_RED + "You have entered an invalid IP address!" + TEXTCOLOUR_RESET);
-						term.log(TEXTCOLOUR_RED + "Validation Error: Regex test failed." + TEXTCOLOUR_RESET);
-						term.log("");
-						promptServerDetails(0);
-						break;
-					}
+					$.ajax({
+						//TODO:                   < here is a "/" required?
+						url: window.location.href + "api.php/validate/address",
+						type: 'POST',
+						data: toHex(preLineText),
+						dataType: "json",
+						success: function (body) {
+							// If response code 200, then the return result must be valid => true
+							if(typeof body == 'object' && body.hasOwnProperty("valid") && body.valid == true)
+							{
+								//Input server address is valid
+								ga('send', 'event', 'terminal', 'validate', 'server.address', 1);
 
-					address = preLineText;
-					termInputPrefix.text(" > ");
-					term.log("Server IP address has been set to: "+ address);
-					term.log("");
-					status = 2;
-					promptServerDetails(1);
+								address = preLineText;
+								termInputPrefix.text(" > ");
+								term.log("Server IP address has been set to: " + address);
+								term.log("");
+								status = 2;
+								promptServerDetails(1);
+							}
+							else
+							{
+								// Malformed JSON request
+								term.log(TEXTCOLOUR_RED + "Validation Failed!" + TEXTCOLOUR_RESET);
+								term.log(TEXTCOLOUR_RED + "Reason: Malformed JSON response received from server." + TEXTCOLOUR_RESET);
+								term.log(TEXTCOLOUR_RED + "This may be due to a problem with the website." + TEXTCOLOUR_RESET);
+								term.log(TEXTCOLOUR_RED + "You may either attempt to input again, or if the problem persists," + TEXTCOLOUR_RESET);
+								term.log(TEXTCOLOUR_RED + "Please contact michael@yoo.id.au for assistance." + TEXTCOLOUR_RESET);
+								term.log("");
+
+								//Reset everything to Enter Server Address
+								promptServerDetails(0);
+							}
+						},
+						error: function (xhr, ajaxOptions, thrownError) {
+							switch(xhr.status)
+							{
+								case 400: // Bad Request
+									ga('send', 'event', 'terminal', 'validate', 'server.address', 0);
+
+									term.log(TEXTCOLOUR_RED + "Validation Failed!" + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: Server Side Validation Failed." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: " + JSON.parse(xhr.responseText).error.message + TEXTCOLOUR_RESET);
+									term.log("");
+
+									//Reset everything to Enter Server Address
+									promptServerDetails(0);
+									break;
+								case 429: // Rate Limit
+									ga('send', 'event', 'terminal', 'ratelimit', 'server.address');
+
+									term.log(TEXTCOLOUR_RED + "Validation Failed!" + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: Rate Limit Exceeded." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Please wait a few seconds before trying again." + TEXTCOLOUR_RESET);
+									term.log("");
+
+									//Reset everything to Enter Server Address
+									promptServerDetails(0);
+									break;
+								default:
+									term.log(TEXTCOLOUR_RED + "Validation Failed!" + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: Unexpected HTTP status code returned by server." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: HTTP/1.1 " + xhr.status + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "This may be due to a problem with the website." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "You may either attempt to input again, or if the problem persists," + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Please contact michael@yoo.id.au for assistance." + TEXTCOLOUR_RESET);
+									term.log("");
+
+									promptServerDetails(0);
+							}
+						}
+					});
 					break;
 				case 2: // Prompt for port
 					ga('send', 'event', 'terminal', 'input', 'server.port');
@@ -129,6 +186,8 @@ $(document).ready(function () {
 					// http://stackoverflow.com/questions/14636536/how-to-check-if-a-variable-is-an-integer-in-javascript#comment20448200_14636652
 					if(!isNormalInteger(preLineText))
 					{
+						ga('send', 'event', 'terminal', 'validate', 'server.port', 0);
+
 						term.log(TEXTCOLOUR_RED + "You have entered an invalid port number!" + TEXTCOLOUR_RESET);
 						term.log(TEXTCOLOUR_RED + "Validation Error: Port number is not a real integer, or is too large." + TEXTCOLOUR_RESET);
 						term.log("");
@@ -138,12 +197,16 @@ $(document).ready(function () {
 
 					if(parseInt(preLineText, 10) < 0 || parseInt(preLineText, 10) > 65535)
 					{
+						ga('send', 'event', 'terminal', 'validate', 'server.port', 0);
+
 						term.log(TEXTCOLOUR_RED + "You have entered an invalid port number!" + TEXTCOLOUR_RESET);
 						term.log(TEXTCOLOUR_RED + "Validation Error: Outside of range." + TEXTCOLOUR_RESET);
 						term.log("");
 						promptServerDetails(1);
 						break;
 					}
+
+					ga('send', 'event', 'terminal', 'validate', 'server.port', 1);
 
 					port = preLineText;
 					termInputPrefix.text(" > ");
@@ -179,6 +242,8 @@ $(document).ready(function () {
 						success: function (body) {
 							if(typeof body == 'object' && body.hasOwnProperty("authenticated") && body.authenticated == true)
 							{
+								ga('send', 'event', 'terminal', 'authenticate', 'success');
+
 								status = 5;
 								term.log(TEXTCOLOUR_GREEN + "Connected!" + TEXTCOLOUR_RESET);
 								//termInputPrefix.css("color", "#8ae234");//Cursor colour done in timer tick interval
@@ -222,6 +287,8 @@ $(document).ready(function () {
 									promptServerDetails(0);
 									break;
 								case 504: // Upstream Time Out
+									ga('send', 'event', 'terminal', 'authenticate', 'timeout');
+
 									term.log(TEXTCOLOUR_RED + "Authentication Failed!" + TEXTCOLOUR_RESET);
 									term.log(TEXTCOLOUR_RED + "Reason: Connection timed out." + TEXTCOLOUR_RESET);
 									term.log("");
@@ -235,6 +302,8 @@ $(document).ready(function () {
 									promptServerDetails(0);
 									break;
 								case 401: // Unautorized
+									ga('send', 'event', 'terminal', 'authenticate', 'unauthorized');
+
 									term.log(TEXTCOLOUR_RED + "Authentication Failed!" + TEXTCOLOUR_RESET);
 									term.log(TEXTCOLOUR_RED + "Reason: Incorrect Credentials." + TEXTCOLOUR_RESET);
 									term.log("");
@@ -248,6 +317,8 @@ $(document).ready(function () {
 									promptServerDetails(2);
 									break;
 								case 429: // Rate Limit
+									ga('send', 'event', 'terminal', 'ratelimit', 'server.authenticate');
+
 									term.log(TEXTCOLOUR_RED + "Authentication Failed!" + TEXTCOLOUR_RESET);
 									term.log(TEXTCOLOUR_RED + "Reason: Rate Limit Exceeded." + TEXTCOLOUR_RESET);
 									term.log(TEXTCOLOUR_RED + "Please wait a few seconds before trying again." + TEXTCOLOUR_RESET);
@@ -262,6 +333,21 @@ $(document).ready(function () {
 									promptServerDetails(2);
 									break;
 								default:
+									term.log(TEXTCOLOUR_RED + "Authentication Failed!" + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: Unexpected HTTP status code returned by server." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Reason: HTTP/1.1 " + xhr.status + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "This may be due to a problem with the website." + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "You may either attempt to connect again, or if the problem persists," + TEXTCOLOUR_RESET);
+									term.log(TEXTCOLOUR_RED + "Please contact michael@yoo.id.au for assistance." + TEXTCOLOUR_RESET);
+									term.log("");
+
+									//Reset everything to before password input
+									termTitle.text("WebRcon.io by @sekjun9878, Version v1.0.0 | Not Connected");
+									termInputPrefix.text(" > ");
+									commandInputLine.text("");
+									token = "";
+									status = 1;
+									promptServerDetails(0);
 							}
 						}
 					});
@@ -416,12 +502,6 @@ function toHex(str) {
 		hex += ''+str.charCodeAt(i).toString(16);
 	}
 	return hex;
-}
-
-function validateIPAddress(ipaddress)
-{
-	// http://www.w3resource.com/javascript/form/ip-address-validation.php
-	return !!/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress);
 }
 
 // Is string positive integer including 0
