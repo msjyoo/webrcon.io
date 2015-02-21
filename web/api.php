@@ -457,8 +457,8 @@ if($app->config("mode") === "development")
 {
 	$app->config("debug", true);
 
-	$_ENV["CACHE1_HOST"] = "192.168.137.5";
-	$_ENV["CACHE1_PORT"] = 6379;
+	$_ENV["REDIS_HOST"] = "192.168.137.5";
+	$_ENV["REDIS_PORT"] = 6379;
 }
 
 $app->add(new HTTPTokenAuthMiddleware);
@@ -466,7 +466,7 @@ $app->add(new HTTPMethodHEADStripBodyMiddleware);
 
 /** @property Redis $redis */
 $app->redis = new Redis;
-$app->redis->connect($_ENV["CACHE1_HOST"], $_ENV["CACHE1_PORT"], 2);
+$app->redis->connect($_ENV["REDIS_HOST"], $_ENV["REDIS_PORT"], 2);
 
 $app->group("/:serverHex", function () use ($app) {
 	$app->post('/rcon', "requireTokenAuth", "rateLimit", function ($serverHex) use ($app) {
