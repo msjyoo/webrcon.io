@@ -779,10 +779,6 @@ $app->group("/:serverHex", function () use ($app) {
 	});
 });
 
-$app->get("/test/getip", function () use ($app) {
-	echo $app->request()->getIp();
-});
-
 $app->post("/validate/address", "rateLimit", function () use ($app) {
 	//Suppress Exception
 	$address = @hex2bin(trim($app->request()->getBody()));
@@ -823,6 +819,16 @@ $app->post("/validate/address", "rateLimit", function () use ($app) {
 			"valid" => true
 		]);
 	}
+});
+
+$app->get("/test/getip", function () use ($app) {
+	echo $app->request()->getIp();
+});
+
+$app->get("/ping", function () use ($app) {
+	echo json_encode([
+		"pong" => true
+	]);
 });
 
 $app->run();

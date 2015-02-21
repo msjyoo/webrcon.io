@@ -20,7 +20,13 @@
 		}
 	],
 	"require": {
+		"php": "~5.6",
+
+		"ext-mbstring": "*",
+		"ext-redis": "*",
+
         "slim/slim": "2.*",
+
 	    "xPaw/PHP-Source-Query-Class": "dev-master#c2ffe00abd35007c815fbc8e9886fc64eeae6513"
     }
 }
