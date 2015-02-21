@@ -3,17 +3,17 @@
 # SSL Cipher Suite can't be modified here because SSL termination is not done here.
 
 # HSTS Strict Transport Security - Minimum ache age 18 weeks for preload
-Header always set Strict-Transport-Security "max-age=10886400; includeSubDomains; preload"
+#Header always set Strict-Transport-Security "max-age=10886400; includeSubDomains; preload"
 
 # Rewrite Engine On
-RewriteEngine On
-RewriteBase /
+#RewriteEngine On
+#RewriteBase /
 
 # If not HTTPS
-RewriteCond %{HTTP:X-Forwarded-Proto} !https
-RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
+#RewriteCond %{HTTP:X-Forwarded-Proto} !https
+#RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
 
 # If HTTPS but www
-RewriteCond %{HTTP:X-Forwarded-Proto} https
-RewriteCond %{HTTP_HOST} ^www.webrcon.io$ [NC]
-RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
+#RewriteCond %{HTTP:X-Forwarded-Proto} https
+#RewriteCond %{HTTP_HOST} ^www.webrcon.io$ [NC]
+#RewriteRule ^(.*)$ https://webrcon.io%{REQUEST_URI} [R=307,L]
