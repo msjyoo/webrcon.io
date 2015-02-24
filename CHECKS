@@ -4,7 +4,11 @@
 #
 # For example:
 #   /about     Our Amazing Team
+#
+# Note that for the initial CHECK, the HTTP X-Forwarded-For is NOT provided
 
 / WebRcon.io by @sekjun9878
 /index.html WebRcon.io by @sekjun9878
-/api.php/ping pong
+
+# Removed temporarily due to Dokku not passing X-Forwarded-For during the CHECK process
+# /api.php/ping pong
