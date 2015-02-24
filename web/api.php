@@ -433,7 +433,7 @@ if($mode === "production")
 {
 	if(!isset($_SERVER['HTTP_X_FORWARDED_FOR']))
 	{
-		throw new LogicException("PagodaBox Will Always Inject X-Forwarded-For");
+		throw new LogicException("PagodaBox / Dokku Will Always Inject X-Forwarded-For");
 	}
 
 	if(isTrustedSource($_SERVER['HTTP_X_FORWARDED_FOR']))
@@ -457,16 +457,21 @@ if($app->config("mode") === "development")
 {
 	$app->config("debug", true);
 
-	$_ENV["REDIS_HOST"] = "192.168.137.5";
-	$_ENV["REDIS_PORT"] = 6379;
+	$_ENV["REDIS_PORT_6379_TCP_ADDR"] = "192.168.137.5";
+	$_ENV["REDIS_PORT_6379_TCP_PORT"] = 6379;
 }
 
 $app->add(new HTTPTokenAuthMiddleware);
 $app->add(new HTTPMethodHEADStripBodyMiddleware);
 
+if(!isset($_ENV["REDIS_PORT_6379_TCP_ADDR"]) or !isset($_ENV["REDIS_PORT_6379_TCP_PORT"]))
+{
+	throw new RuntimeException("Redis configuration details are not provided.");
+}
+
 /** @property Redis $redis */
 $app->redis = new Redis;
-$app->redis->connect($_ENV["REDIS_HOST"], $_ENV["REDIS_PORT"], 2);
+$app->redis->connect($_ENV["REDIS_PORT_6379_TCP_ADDR"], $_ENV["REDIS_PORT_6379_TCP_PORT"], 2);
 
 $app->group("/:serverHex", function () use ($app) {
 	$app->post('/rcon', "requireTokenAuth", "rateLimit", function ($serverHex) use ($app) {
