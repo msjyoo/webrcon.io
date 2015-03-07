@@ -28,10 +28,5 @@
         "slim/slim": "2.*",
 
 	    "xPaw/PHP-Source-Query-Class": "dev-master#c2ffe00abd35007c815fbc8e9886fc64eeae6513"
-    },
-	"config":{
-		"github-oauth":{
-			"github.com": "ce26f7d57cfd052eda58b65c3c0909f69b81543a"
-		}
-	}
+    }
 }
