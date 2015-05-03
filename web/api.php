@@ -389,7 +389,7 @@ function rateLimit()
 
 	if(($count = $app->redis->get("ratelimit:client:{$shortIP}")) !== false)
 	{
-		if($count >= 2) // How many requests in a given timeframe
+		if($count >= 6) // How many requests in a given timeframe
 		{
 			$app->halt(429, json_encode([
 				"error" => [

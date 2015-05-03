@@ -5,7 +5,7 @@ var TEXTCOLOUR_RESET = "\x1b[39;49m";
 $(document).ready(function () {
 	var initialInfo = [
 		"--------------------------------------------------",
-		"| WebRcon.io Version v1.0.0                      |",
+		"| WebRcon.io Version v1.0.1                      |",
 		"| Developed and Maintained by @sekjun9878        |",
 		"| For any bugs please contact michael@yoo.id.au  |",
 		"--------------------------------------------------",
@@ -26,7 +26,7 @@ $(document).ready(function () {
 		"| for rate limiting so that our service doesn't  |",
 		"| get used as a brute force reflector.           |",
 		"|                                                |",
-		"| You may make up to 2 requests per 3 seconds    |",
+		"| You may make up to 6 requests per 3 seconds    |",
 		"| per client, or 6 requests in 3 seconds to a    |",
 		"| specific host. (Any client IPs combined).      |",
 		"--------------------------------------------------",
